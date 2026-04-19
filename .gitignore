@@ -5,6 +5,7 @@ Backend/.metadata/
 # ── Project notes (local only) ───────────────────────────────────────────────
 notes
 taskmanager.zip
+.env
 
 # ── Backend ───────────────────────────────────────────────────────────────────
 Backend/target/
