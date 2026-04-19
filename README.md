@@ -16,6 +16,7 @@ A full-stack task management application built with Spring Boot and React.
 
 - JWT authentication stored in httpOnly cookies (never exposed to JavaScript)
 - Role-based access control (ADMIN / USER)
+- Logout confirmation modal
 - Admins can create, assign, edit, and delete tasks
 - Users can view their tasks, update status, and add comments
 - User feedback/suggestion system with admin read receipts
@@ -65,7 +66,10 @@ taskmanager/
 ### Option A — Docker (recommended)
 
 ```bash
-# Create a .env file at the project root first (see Environment Variables below)
+# Copy the example env and fill in your values
+cp .env.example .env
+
+# Then run
 docker-compose up --build
 ```
 
@@ -136,6 +140,7 @@ Frontend: `http://localhost:5173`
 | DB_PASSWORD | Database password |
 | JWT_SECRET | HMAC-SHA256 secret (min 32 chars) |
 | CORS_ALLOWED_ORIGIN | Frontend origin (e.g. https://yourapp.vercel.app) |
+| COOKIE_SECURE | Set to `true` for HTTPS, `false` for local dev |
 
 ## Roles
 
