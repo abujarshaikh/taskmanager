@@ -17,19 +17,21 @@ export default function LoginPage() {
       toast.error("Please enter username and password.");
       return;
     }
+    let toastId;
     try {
       setSubmitting(true);
-      const toastId = toast.loading("Logging in...");
+      toastId = toast.loading("Logging in...");
       const res = await api.post(API_ENDPOINTS.LOGIN, { username, password });
-      login(res.data.role, res.data.username);
       toast.dismiss(toastId);
       toast.success(`Welcome back, ${res.data.username}!`);
+      login(res.data.role, res.data.username);
       if (res.data.role === ROLES.ADMIN) {
         navigate("/admin");
       } else {
         navigate("/dashboard");
       }
     } catch {
+      toast.dismiss(toastId);
       toast.error("Invalid username or password");
     } finally {
       setSubmitting(false);

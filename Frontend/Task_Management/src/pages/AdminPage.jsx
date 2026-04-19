@@ -28,6 +28,7 @@ export default function AdminPage() {
   const [totalPages, setTotalPages] = useState(0);
   const [deleteId, setDeleteId]     = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   const handleLogout = () => { logout(); navigate("/login"); };
   const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
@@ -137,6 +138,15 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {logoutModalOpen && (
+        <ConfirmModal
+          message="Are you sure you want to logout?"
+          confirmLabel="Logout"
+          confirmClassName="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition"
+          onConfirm={handleLogout}
+          onCancel={() => setLogoutModalOpen(false)}
+        />
+      )}
       {deleteId && (
         <ConfirmModal
           message="Are you sure you want to delete this task? This action cannot be undone."
@@ -145,7 +155,7 @@ export default function AdminPage() {
         />
       )}
 
-      <AdminNavbar username={username} onLogout={handleLogout} />
+      <AdminNavbar username={username} onLogout={() => setLogoutModalOpen(true)} />
 
       <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
 

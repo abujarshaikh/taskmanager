@@ -8,6 +8,7 @@ import { statusColor, priorityColor } from "../utils/taskUtils";
 import ContactAdminWidget from "../components/ContactAdminWidget";
 import WelcomeTaskCard from "../components/WelcomeTaskCard";
 import FeedbackModal from "../components/FeedbackModal";
+import ConfirmModal from "../components/ConfirmModal";
 
 export default function DashboardPage() {
   const { logout, username } = useAuth();
@@ -21,6 +22,7 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({ pending: 0, inProgress: 0, completed: 0, total: 0 });
   const [filter, setFilter] = useState("ALL");
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
 
   // Track whether user has already submitted a suggestion (persisted in localStorage)
   const [suggestionSubmitted, setSuggestionSubmitted] = useState(
@@ -137,6 +139,15 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-100">
+      {logoutModalOpen && (
+        <ConfirmModal
+          message="Are you sure you want to logout?"
+          confirmLabel="Logout"
+          confirmClassName="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition"
+          onConfirm={handleLogout}
+          onCancel={() => setLogoutModalOpen(false)}
+        />
+      )}
       {/* Feedback Modal */}
       {feedbackModalOpen && (
         <FeedbackModal
@@ -176,7 +187,7 @@ export default function DashboardPage() {
             </button>
           )}
           <button
-            onClick={handleLogout}
+            onClick={() => setLogoutModalOpen(true)}
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
             Logout
           </button>

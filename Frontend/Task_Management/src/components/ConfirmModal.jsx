@@ -1,4 +1,4 @@
-export default function ConfirmModal({ message, onConfirm, onCancel }) {
+export default function ConfirmModal({ message, onConfirm, onCancel, confirmLabel = "Delete", confirmClassName = "flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition" }) {
   return (
     <div
       className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
@@ -15,8 +15,8 @@ export default function ConfirmModal({ message, onConfirm, onCancel }) {
           </button>
           <button
             onClick={onConfirm}
-            className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition">
-            Delete
+            className={confirmClassName}>
+            {confirmLabel}
           </button>
         </div>
       </div>
