@@ -1,0 +1,44 @@
+# ── Eclipse IDE ──────────────────────────────────────────────────────────────
+.metadata/
+Backend/.metadata/
+
+# ── Project notes (local only) ───────────────────────────────────────────────
+notes
+taskmanager.zip
+
+# ── Backend ───────────────────────────────────────────────────────────────────
+Backend/target/
+Backend/.mvn/wrapper/maven-wrapper.jar
+Backend/.classpath
+Backend/.project
+Backend/.settings/
+Backend/.springBeans
+Backend/.sts4-cache/
+Backend/HELP.md
+
+# Secrets — NEVER commit these
+Backend/src/main/resources/application-dev.properties
+
+# ── Frontend ──────────────────────────────────────────────────────────────────
+Frontend/Task_Management/node_modules/
+Frontend/Task_Management/dist/
+Frontend/Task_Management/dist-ssr/
+
+# Secrets — NEVER commit these
+Frontend/Task_Management/.env
+Frontend/Task_Management/.env.development
+Frontend/Task_Management/.env.production
+
+# ── IDE ───────────────────────────────────────────────────────────────────────
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+.DS_Store
+*.suo
+*.sw?
+
+# ── Logs ──────────────────────────────────────────────────────────────────────
+*.log
+logs/
