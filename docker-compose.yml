@@ -9,8 +9,6 @@ services:
     environment:
       MYSQL_DATABASE: task_manager
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD environment variable is required}
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:
