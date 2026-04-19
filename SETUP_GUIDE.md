@@ -161,6 +161,6 @@ taskmanager/
 
 ## Need Help?
 
-If you get stuck, send the exact error message to Abujar and he'll help you fix it.
+If you get stuck, send the exact error message to abujarshaikh24@gmail.com and he'll help you fix it.
 
 GitHub: https://github.com/abujarshaikh/taskmanager
