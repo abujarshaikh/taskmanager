@@ -62,64 +62,60 @@ export default function TaskList({ tasks, loading, currentPage, totalPages, onEd
 
                     {/* Comments with admin reply */}
                     {task.comments && task.comments.length > 0 && (
-                      <div className="mt-3 bg-blue-50 dark:bg-blue-950 rounded-lg p-3 space-y-3">
-                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400">
+                      <div className="mt-3 bg-blue-50 dark:bg-blue-950 rounded-lg p-3">
+                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">
                           💬 Comments ({task.comments.length})
                         </p>
-                        {task.comments.map((c) => (
-                          <div key={c.id}>
-                            {/* User comment */}
-                            <div className="border-l-2 border-blue-300 dark:border-blue-700 pl-2">
-                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{c.username}</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">{c.content}</p>
-                              <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(c.createdAt).toLocaleString()}</p>
-                            </div>
-
-                            {/* Admin reply — show if exists */}
-                            {c.adminReply && (
-                              <div className="ml-4 mt-1 border-l-2 border-indigo-300 dark:border-indigo-700 pl-2 bg-indigo-50 dark:bg-indigo-950 rounded-r-lg py-1">
-                                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">↩ Admin</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">{c.adminReply}</p>
+                        <div className="max-h-40 overflow-y-auto space-y-3 pr-1">
+                          {task.comments.map((c) => (
+                            <div key={c.id}>
+                              <div className="border-l-2 border-blue-300 dark:border-blue-700 pl-2">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{c.username}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{c.content}</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(c.createdAt).toLocaleString()}</p>
                               </div>
-                            )}
-
-                            {/* Reply button / input */}
-                            {!c.adminReply && replyingTo !== c.id && (
-                              <button
-                                onClick={() => { setReplyingTo(c.id); setReplyText(""); }}
-                                className="mt-1 ml-2 text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition cursor-pointer">
-                                ↩ Reply
-                              </button>
-                            )}
-
-                            {replyingTo === c.id && (
-                              <div className="mt-2 ml-2 space-y-1">
-                                <textarea
-                                  rows={2}
-                                  autoFocus
-                                  placeholder="Write your reply..."
-                                  value={replyText}
-                                  onChange={(e) => setReplyText(e.target.value)}
-                                  maxLength={500}
-                                  className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => setReplyingTo(null)}
-                                    className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs py-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer">
-                                    Cancel
-                                  </button>
-                                  <button
-                                    onClick={() => handleReply(c.id)}
-                                    disabled={!replyText.trim() || submitting}
-                                    className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-medium py-1 rounded-lg transition cursor-pointer">
-                                    {submitting ? "Sending..." : "Send Reply"}
-                                  </button>
+                              {c.adminReply && (
+                                <div className="ml-4 mt-1 border-l-2 border-indigo-300 dark:border-indigo-700 pl-2 bg-indigo-50 dark:bg-indigo-950 rounded-r-lg py-1">
+                                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">↩ Admin</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">{c.adminReply}</p>
                                 </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                              )}
+                              {!c.adminReply && replyingTo !== c.id && (
+                                <button
+                                  onClick={() => { setReplyingTo(c.id); setReplyText(""); }}
+                                  className="mt-1 ml-2 text-xs text-indigo-500 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300 transition cursor-pointer">
+                                  ↩ Reply
+                                </button>
+                              )}
+                              {replyingTo === c.id && (
+                                <div className="mt-2 ml-2 space-y-1">
+                                  <textarea
+                                    rows={2}
+                                    autoFocus
+                                    placeholder="Write your reply..."
+                                    value={replyText}
+                                    onChange={(e) => setReplyText(e.target.value)}
+                                    maxLength={500}
+                                    className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-2 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none"
+                                  />
+                                  <div className="flex gap-2">
+                                    <button
+                                      onClick={() => setReplyingTo(null)}
+                                      className="flex-1 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 text-xs py-1 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition cursor-pointer">
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() => handleReply(c.id)}
+                                      disabled={!replyText.trim() || submitting}
+                                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white text-xs font-medium py-1 rounded-lg transition cursor-pointer">
+                                      {submitting ? "Sending..." : "Send Reply"}
+                                    </button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>

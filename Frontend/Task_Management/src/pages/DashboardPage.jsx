@@ -389,23 +389,25 @@ export default function DashboardPage() {
 
                     {/* Comment history */}
                     {task.comments && task.comments.length > 0 && (
-                      <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 space-y-3">
-                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400">💬 Comments ({task.comments.length})</p>
-                        {task.comments.map((c) => (
-                          <div key={c.id}>
-                            <div className="border-l-2 border-blue-300 dark:border-blue-700 pl-2">
-                              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{c.username}</p>
-                              <p className="text-xs text-gray-600 dark:text-gray-400">{c.content}</p>
-                              <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(c.createdAt).toLocaleString()}</p>
-                            </div>
-                            {c.adminReply && (
-                              <div className="ml-4 mt-1 border-l-2 border-indigo-300 dark:border-indigo-700 pl-2 bg-indigo-50 dark:bg-indigo-950 rounded-r-lg py-1">
-                                <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">↩ Admin</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">{c.adminReply}</p>
+                      <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3">
+                        <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">💬 Comments ({task.comments.length})</p>
+                        <div className="max-h-40 overflow-y-auto space-y-3 pr-1">
+                          {task.comments.map((c) => (
+                            <div key={c.id}>
+                              <div className="border-l-2 border-blue-300 dark:border-blue-700 pl-2">
+                                <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">{c.username}</p>
+                                <p className="text-xs text-gray-600 dark:text-gray-400">{c.content}</p>
+                                <p className="text-xs text-gray-400 dark:text-gray-500">{new Date(c.createdAt).toLocaleString()}</p>
                               </div>
-                            )}
-                          </div>
-                        ))}
+                              {c.adminReply && (
+                                <div className="ml-4 mt-1 border-l-2 border-indigo-300 dark:border-indigo-700 pl-2 bg-indigo-50 dark:bg-indigo-950 rounded-r-lg py-1">
+                                  <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">↩ Admin</p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400">{c.adminReply}</p>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     )}
 
