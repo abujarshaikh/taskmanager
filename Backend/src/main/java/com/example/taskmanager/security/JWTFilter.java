@@ -33,7 +33,6 @@ public class JWTFilter extends OncePerRequestFilter {
 		return path.equals("/api/auth/login")
 				|| path.equals("/api/auth/register")
 				|| path.equals("/api/auth/logout")
-				|| path.equals("/api/auth/me")
 				|| path.equals("/api/auth/refresh")
 				|| path.startsWith("/swagger-ui")
 				|| path.startsWith("/v3/api-docs");
@@ -54,9 +53,9 @@ public class JWTFilter extends OncePerRequestFilter {
 					.orElse(null);
 		}
 
-		// No token present — reject immediately for all non-public routes
+		// No token — only reject for protected routes, pass through for /me
 		if (token == null) {
-			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Authentication required");
+			filterChain.doFilter(request, response);
 			return;
 		}
 
