@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.taskmanager.dto.ActivityLogResponse;
 import com.example.taskmanager.dto.UserStatsResponse;
 import com.example.taskmanager.dto.UserSummaryResponse;
 import com.example.taskmanager.enums.Role;
 import com.example.taskmanager.enums.TaskStatus;
+import com.example.taskmanager.service.ActivityLogService;
 import com.example.taskmanager.repository.TaskRepository;
 import com.example.taskmanager.repository.UserRepository;
 import com.example.taskmanager.util.AppConstants;
@@ -28,6 +30,13 @@ public class AdminController {
 
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final ActivityLogService activityLogService;
+
+    @GetMapping("/activity")
+    @Transactional(readOnly = true)
+    public List<ActivityLogResponse> getActivityLog() {
+        return activityLogService.getRecent(50);
+    }
 
     @GetMapping("/users/stats")
     @Transactional(readOnly = true)

@@ -14,27 +14,24 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "suggestions")
+@Table(name = "activity_logs")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Suggestion {
+public class ActivityLog {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String username;
+    private String actorUsername;
 
-    @Column(nullable = false, length = 1000)
-    private String message;
+    @Column(nullable = false)
+    private String action;
 
-    @Column(name = "is_read", nullable = false)
-    private boolean read = false;
-
-    @Column(length = 1000)
-    private String reply;
+    @Column(length = 500)
+    private String details;
 
     @CreationTimestamp
     @Column(updatable = false)

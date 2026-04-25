@@ -4,39 +4,35 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-@Table(name = "suggestions")
+@Table(name = "refresh_tokens")
 @Getter
 @Setter
 @NoArgsConstructor
-public class Suggestion {
+public class RefreshToken {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false, unique = true)
+    private String token;
+
     @Column(nullable = false)
-    private String username;
+    private LocalDateTime expiresAt;
 
-    @Column(nullable = false, length = 1000)
-    private String message;
-
-    @Column(name = "is_read", nullable = false)
-    private boolean read = false;
-
-    @Column(length = 1000)
-    private String reply;
-
-    @CreationTimestamp
-    @Column(updatable = false)
-    private LocalDateTime createdAt;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

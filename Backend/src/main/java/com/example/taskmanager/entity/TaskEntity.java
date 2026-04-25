@@ -2,10 +2,13 @@ package com.example.taskmanager.entity;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.example.taskmanager.enums.Priority;
 import com.example.taskmanager.enums.TaskStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -17,6 +20,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -26,8 +30,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 @Table(name = "task", indexes = {
-    @Index(name = "idx_task_user_id", columnList = "user_id"),
-    @Index(name = "idx_task_status",  columnList = "status")
+        @Index(name = "idx_task_user_id", columnList = "user_id"),
+        @Index(name = "idx_task_status", columnList = "status")
 })
 @Getter
 @Setter
@@ -44,9 +48,6 @@ public class TaskEntity {
     @Column(length = 1000)
     private String description;
 
-    @Column(length = 2000)
-    private String comments;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskStatus status;
@@ -55,6 +56,8 @@ public class TaskEntity {
     private Priority priority;
 
     private LocalDate dueDate;
+
+    private LocalDateTime completedAt;
 
     @CreationTimestamp
     @Column(updatable = false)
@@ -67,14 +70,10 @@ public class TaskEntity {
     @JoinColumn(name = "user_id")
     private User user;
 
+    @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    private List<Comment> comments = new ArrayList<>();
+
     public String getAssignedTo() {
         return user != null ? user.getUsername() : null;
-    }
-
-    public void addComment(String username, String comment) {
-        String entry = "[" + username + "]: " + comment;
-        this.comments = (this.comments == null || this.comments.isBlank())
-                ? entry
-                : this.comments + "\n" + entry;
     }
 }

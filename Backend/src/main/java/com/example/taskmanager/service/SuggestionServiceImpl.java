@@ -12,6 +12,7 @@ import com.example.taskmanager.dto.SuggestionResponse;
 import com.example.taskmanager.entity.Suggestion;
 import com.example.taskmanager.exception.ResourceNotFoundException;
 import com.example.taskmanager.repository.SuggestionRepository;
+import com.example.taskmanager.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 
@@ -20,6 +21,8 @@ import lombok.RequiredArgsConstructor;
 public class SuggestionServiceImpl implements SuggestionService {
 
     private final SuggestionRepository suggestionRepository;
+    private final UserRepository userRepository;
+    private final EmailService emailService;
 
     @Override
     @Transactional
@@ -49,16 +52,40 @@ public class SuggestionServiceImpl implements SuggestionService {
     }
 
     @Override
+    @Transactional
+    public SuggestionResponse replyToSuggestion(Long id, String reply) {
+        Suggestion suggestion = suggestionRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Suggestion not found: " + id));
+        suggestion.setReply(reply);
+        suggestion.setRead(true);
+        Suggestion saved = suggestionRepository.save(suggestion);
+
+        // Send email reply to user
+        userRepository.findByUsername(saved.getUsername()).ifPresent(user ->
+            emailService.sendSuggestionReply(user.getEmail(), user.getUsername(), reply)
+        );
+
+        return new SuggestionResponse(saved);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public String getReplyForUser(String username) {
+        return suggestionRepository
+                .findTopByUsernameOrderByCreatedAtDesc(username)
+                .map(Suggestion::getReply)
+                .orElse(null);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public boolean hasUnreadReceipt(String username) {
-        // Returns true if the user's latest suggestion has been read by admin
         return suggestionRepository
                 .findTopByUsernameOrderByCreatedAtDesc(username)
                 .map(Suggestion::isRead)
                 .orElse(false);
     }
 
-    // Runs every day at midnight — deletes suggestions read more than 7 days ago
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void cleanupOldReadSuggestions() {

@@ -7,8 +7,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.taskmanager.dto.AuthRequest;
 import com.example.taskmanager.dto.AuthResponse;
 import com.example.taskmanager.dto.RegisterRequest;
-import com.example.taskmanager.enums.Role;
+import com.example.taskmanager.entity.RefreshToken;
 import com.example.taskmanager.entity.User;
+import com.example.taskmanager.enums.Role;
 import com.example.taskmanager.exception.UnauthorizedException;
 import com.example.taskmanager.repository.UserRepository;
 import com.example.taskmanager.security.JWTUtil;
@@ -22,6 +23,8 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JWTUtil jwtUtil;
+    private final EmailService emailService;
+    private final RefreshTokenService refreshTokenService;
 
     @Override
     @Transactional
@@ -39,10 +42,13 @@ public class AuthServiceImpl implements AuthService {
         user.setEmail(request.getEmail());
         user.setRole(Role.ROLE_USER);
         userRepository.save(user);
+
+        // Notify admin of new registration
+        emailService.sendNewUserRegistered(request.getUsername(), request.getEmail());
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public AuthResponse login(AuthRequest request) {
         User user = userRepository.findByUsername(request.getUsername())
                 .orElseThrow(() -> new UnauthorizedException("Invalid username or password"));
@@ -50,6 +56,7 @@ public class AuthServiceImpl implements AuthService {
             throw new UnauthorizedException("Invalid username or password");
         }
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole().name());
-        return new AuthResponse(user.getRole().name(), token, user.getUsername());
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getUsername());
+        return new AuthResponse(user.getRole().name(), token, user.getUsername(), refreshToken.getToken());
     }
 }

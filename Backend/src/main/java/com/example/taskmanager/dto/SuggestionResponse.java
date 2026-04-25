@@ -15,6 +15,7 @@ public class SuggestionResponse {
     private final String message;
     @JsonProperty("isRead")
     private final boolean isRead;
+    private final String reply;
     private final LocalDateTime createdAt;
 
     public SuggestionResponse(Suggestion s) {
@@ -22,6 +23,7 @@ public class SuggestionResponse {
         this.username  = s.getUsername();
         this.message   = s.getMessage();
         this.isRead    = s.isRead();
+        this.reply     = s.getReply();
         this.createdAt = s.getCreatedAt();
     }
 }

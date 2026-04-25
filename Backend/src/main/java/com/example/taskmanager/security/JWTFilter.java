@@ -11,6 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.example.taskmanager.service.CustomUserDetailsService;
 import com.example.taskmanager.util.AppConstants;
+import io.jsonwebtoken.JwtException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -33,6 +34,7 @@ public class JWTFilter extends OncePerRequestFilter {
 				|| path.equals("/api/auth/register")
 				|| path.equals("/api/auth/logout")
 				|| path.equals("/api/auth/me")
+				|| path.equals("/api/auth/refresh")
 				|| path.startsWith("/swagger-ui")
 				|| path.startsWith("/v3/api-docs");
 	}
@@ -69,7 +71,7 @@ public class JWTFilter extends OncePerRequestFilter {
 				response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expired or invalid");
 				return;
 			}
-		} catch (Exception e) {
+		} catch (JwtException | IllegalArgumentException e) {
 			response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid token");
 			return;
 		}

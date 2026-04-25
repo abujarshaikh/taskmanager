@@ -19,7 +19,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.taskmanager.dto.CommentReplyRequest;
 import com.example.taskmanager.dto.CommentRequest;
+import com.example.taskmanager.dto.CommentResponse;
 import com.example.taskmanager.dto.PageResponse;
 import com.example.taskmanager.dto.StatusRequest;
 import com.example.taskmanager.dto.TaskRequest;
@@ -89,10 +91,18 @@ public class TaskController {
 
 	// Comment sent as JSON body — not a query param (avoids encoding issues with long text)
 	@PatchMapping("/{id}/comment")
-	public ResponseEntity<TaskResponse> addComment(
+	public ResponseEntity<CommentResponse> addComment(
 			@PathVariable("id") Long taskId,
 			@Valid @RequestBody CommentRequest request) {
 		return ResponseEntity.ok(taskService.addComment(taskId, request.getComment()));
+	}
+
+	@PreAuthorize("hasAuthority('" + AppConstants.ROLE_ADMIN + "')")
+	@PatchMapping("/comments/{commentId}/reply")
+	public ResponseEntity<CommentResponse> replyToComment(
+			@PathVariable Long commentId,
+			@Valid @RequestBody CommentReplyRequest request) {
+		return ResponseEntity.ok(taskService.replyToComment(commentId, request.getReply()));
 	}
 
 	@PreAuthorize("hasAuthority('" + AppConstants.ROLE_ADMIN + "')")

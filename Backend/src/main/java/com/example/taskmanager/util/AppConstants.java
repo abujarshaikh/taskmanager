@@ -11,5 +11,6 @@ public final class AppConstants {
     public static final String API_TASKS       = "/api/tasks/**";
     public static final String API_ADMIN       = "/api/admin/**";
     public static final String API_SUGGESTIONS = "/api/suggestions/**";
-    public static final String COOKIE_NAME     = "jwt";
+    public static final String COOKIE_NAME         = "jwt";
+    public static final String REFRESH_COOKIE_NAME = "jwt_refresh";
 }
