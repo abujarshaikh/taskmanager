@@ -70,7 +70,7 @@ export default function ProfilePage() {
 
       <Navbar username={username} role={role} onLogout={() => setLogoutModalOpen(true)}>
         <button
-          onClick={() => navigate(role === ROLES.ADMIN ? "/admin" : "/dashboard")}
+          onClick={() => navigate(role === ROLES.ADMIN ? "/admin/analytics" : "/dashboard")}
           className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition cursor-pointer">
           ← Back
         </button>

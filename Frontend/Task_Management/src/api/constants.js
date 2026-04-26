@@ -15,6 +15,8 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: "/admin/users",
   ADMIN_STATS: "/admin/users/stats",
   ADMIN_ACTIVITY: "/admin/activity",
+  ANALYTICS_SUMMARY: "/admin/analytics/summary",
+  ANALYTICS_OVER_TIME: "/admin/analytics/tasks-over-time",
   SUGGESTIONS: "/suggestions",
   SUGGESTION_RECEIPT: "/suggestions/receipt",
   SUGGESTION_REPLY: "/suggestions/my-reply",

@@ -1,5 +1,9 @@
 package com.example.taskmanager.controller;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.taskmanager.dto.ActivityLogResponse;
+import com.example.taskmanager.dto.AnalyticsSummaryResponse;
+import com.example.taskmanager.dto.TasksOverTimeResponse;
 import com.example.taskmanager.dto.UserStatsResponse;
 import com.example.taskmanager.dto.UserSummaryResponse;
 import com.example.taskmanager.enums.Role;
@@ -36,6 +42,39 @@ public class AdminController {
     @Transactional(readOnly = true)
     public List<ActivityLogResponse> getActivityLog() {
         return activityLogService.getRecent(50);
+    }
+
+    @GetMapping("/analytics/summary")
+    @Transactional(readOnly = true)
+    public AnalyticsSummaryResponse getAnalyticsSummary() {
+        long pending    = taskRepository.countByStatus(TaskStatus.PENDING);
+        long inProgress = taskRepository.countByStatus(TaskStatus.IN_PROGRESS);
+        long completed  = taskRepository.countByStatus(TaskStatus.COMPLETED);
+        long overdue    = taskRepository.countOverdue(LocalDate.now(), TaskStatus.COMPLETED);
+        return new AnalyticsSummaryResponse(pending + inProgress + completed, pending, inProgress, completed, overdue);
+    }
+
+    @GetMapping("/analytics/tasks-over-time")
+    @Transactional(readOnly = true)
+    public List<TasksOverTimeResponse> getTasksOverTime() {
+        LocalDateTime from = LocalDateTime.now().minusDays(29).toLocalDate().atStartOfDay();
+        List<Object[]> rows = taskRepository.countTasksCreatedPerDay(from);
+
+        // Build a map of existing data
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        Map<String, Long> dataMap = new HashMap<>();
+        for (Object[] row : rows) {
+            String date = row[0].toString().substring(0, 10);
+            dataMap.put(date, (long) row[1]);
+        }
+
+        // Fill in all 30 days — days with no tasks get count 0
+        List<TasksOverTimeResponse> result = new ArrayList<>();
+        for (int i = 29; i >= 0; i--) {
+            String date = LocalDate.now().minusDays(i).format(fmt);
+            result.add(new TasksOverTimeResponse(date, dataMap.getOrDefault(date, 0L)));
+        }
+        return result;
     }
 
     @GetMapping("/users/stats")

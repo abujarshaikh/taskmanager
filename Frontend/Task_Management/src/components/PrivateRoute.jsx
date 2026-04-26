@@ -11,7 +11,7 @@ export default function PrivateRoute({ children, requiredRole }) {
   }
 
   if (requiredRole && role !== requiredRole) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={role === "ROLE_ADMIN" ? "/admin/analytics" : "/dashboard"} replace />;
   }
 
   return children;
