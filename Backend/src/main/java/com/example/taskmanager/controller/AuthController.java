@@ -126,7 +126,7 @@ public class AuthController {
                 .secure(cookieSecure)
                 .path("/")
                 .maxAge(maxAge)
-                .sameSite("Lax")
+                .sameSite(cookieSecure ? "None" : "Lax")
                 .build();
     }
 }
