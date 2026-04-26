@@ -1,20 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../api/axiosInstance";
 import { useAuth } from "../context/AuthContext";
 import toast from "react-hot-toast";
-import { API_ENDPOINTS, ROLES } from "../api/constants";
+import { API_ENDPOINTS } from "../api/constants";
 import { statusColor, priorityColor } from "../utils/taskUtils";
 import ContactAdminWidget from "../components/ContactAdminWidget";
 import WelcomeTaskCard from "../components/WelcomeTaskCard";
 import FeedbackModal from "../components/FeedbackModal";
-import ConfirmModal from "../components/ConfirmModal";
-import Navbar from "../components/Navbar";
+import UserLayout from "../components/UserLayout";
 import StatsChart from "../components/StatsChart";
 
 export default function DashboardPage() {
-  const { logout, username, role } = useAuth();
-  const navigate = useNavigate();
+  const { username } = useAuth();
 
   const [tasks, setTasks]               = useState([]);
   const [newComment, setNewComment]     = useState({});
@@ -28,16 +25,11 @@ export default function DashboardPage() {
   const [search, setSearch]             = useState("");
   const [sortBy, setSortBy]             = useState("default");
   const [feedbackModalOpen, setFeedbackModalOpen] = useState(false);
-  const [logoutModalOpen, setLogoutModalOpen]     = useState(false);
   const [adminReply, setAdminReply]     = useState(null);
 
   const [suggestionSubmitted, setSuggestionSubmitted] = useState(
     () => !!localStorage.getItem(`suggestion_submitted_${username}`)
   );
-
-  const handleLogout = () => { logout(); navigate("/login"); };
-
-  // ── Data fetching ──────────────────────────────────────────────────────────
 
   const fetchTasks = useCallback(async (page = 0) => {
     try {
@@ -62,57 +54,39 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // Deadline notification — show toast for tasks due today
   const checkDeadlines = useCallback((taskList) => {
     const today = new Date().toISOString().split("T")[0];
     taskList.forEach((task) => {
       if (task.dueDate === today && task.status !== "COMPLETED") {
-        toast(`⏰ Task due today: ${task.title}`, {
-          duration: 8000,
-          icon: "⚠️",
-        });
+        toast(`⏰ Task due today: ${task.title}`, { duration: 8000, icon: "⚠️" });
       }
     });
   }, []);
 
-  // Read receipt polling — check every 30 seconds
+  // Read receipt polling
   useEffect(() => {
     if (!suggestionSubmitted) return;
     const receiptShownKey = `receipt_shown_${username}`;
     if (localStorage.getItem(receiptShownKey)) return;
-
     const check = async () => {
       try {
         const res = await api.get(API_ENDPOINTS.SUGGESTION_RECEIPT);
         if (res.data === true) {
           toast.success("💬 We've received your feedback and we're working on it!", { duration: 6000 });
           localStorage.setItem(receiptShownKey, "true");
-          // Also fetch admin reply
           const replyRes = await api.get(API_ENDPOINTS.SUGGESTION_REPLY);
           if (replyRes.data.reply) setAdminReply(replyRes.data.reply);
         }
       } catch { /* silent */ }
     };
-
     check();
     const interval = setInterval(check, 30000);
     return () => clearInterval(interval);
   }, [username, suggestionSubmitted]);
 
-  useEffect(() => {
-    fetchTasks(currentPage).then(() => {
-      // Check deadlines after tasks load
-      if (tasks.length > 0) checkDeadlines(tasks);
-    });
-  }, [currentPage, fetchTasks]);
-
-  useEffect(() => {
-    if (tasks.length > 0) checkDeadlines(tasks);
-  }, [tasks, checkDeadlines]);
-
+  useEffect(() => { fetchTasks(currentPage); }, [currentPage, fetchTasks]);
+  useEffect(() => { if (tasks.length > 0) checkDeadlines(tasks); }, [tasks, checkDeadlines]);
   useEffect(() => { fetchStats(); }, [fetchStats]);
-
-  // ── Task actions ───────────────────────────────────────────────────────────
 
   const handleStatusChange = async (taskId, newStatus) => {
     setTasks((prev) => prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t)));
@@ -136,18 +110,13 @@ export default function DashboardPage() {
       toast.dismiss(toastId);
       toast.success("Comment added!");
       setNewComment((prev) => ({ ...prev, [taskId]: "" }));
-      // Add new comment to task locally
       setTasks((prev) => prev.map((t) =>
-        t.id === taskId
-          ? { ...t, comments: [...(t.comments || []), res.data] }
-          : t
+        t.id === taskId ? { ...t, comments: [...(t.comments || []), res.data] } : t
       ));
     } catch {
       toast.error("Failed to add comment!");
     }
   };
-
-  // ── Derived state ──────────────────────────────────────────────────────────
 
   const now = new Date();
   const completionPct = stats.total === 0 ? 0 : Math.round((stats.completed / stats.total) * 100);
@@ -156,7 +125,6 @@ export default function DashboardPage() {
   const showFeedbackInNavbar = suggestionSubmitted || totalElements > 0;
   const showWelcomeCard = totalElements === 0 && !suggestionSubmitted;
 
-  // Apply search + filter + priority filter + sort
   let displayedTasks = tasks;
   if (filter !== "ALL")         displayedTasks = displayedTasks.filter((t) => t.status === filter);
   if (priorityFilter !== "ALL") displayedTasks = displayedTasks.filter((t) => t.priority === priorityFilter);
@@ -167,17 +135,26 @@ export default function DashboardPage() {
     displayedTasks = [...displayedTasks].sort((a, b) => (order[a.priority] ?? 3) - (order[b.priority] ?? 3));
   }
 
-  return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-950">
-      {logoutModalOpen && (
-        <ConfirmModal
-          message="Are you sure you want to logout?"
-          confirmLabel="Logout"
-          confirmClassName="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-2 rounded-lg transition"
-          onConfirm={handleLogout}
-          onCancel={() => setLogoutModalOpen(false)}
-        />
+  // Navbar extras passed to UserLayout
+  const navbarExtras = (
+    <>
+      {!loading && totalElements > 0 && (
+        <span className="text-sm text-gray-400 dark:text-gray-500 hidden sm:block">
+          {totalElements} task{totalElements !== 1 ? "s" : ""} assigned
+        </span>
       )}
+      {showFeedbackInNavbar && (
+        <button
+          onClick={() => setFeedbackModalOpen(true)}
+          className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-400 text-sm font-medium px-3 py-2 rounded-lg transition border border-indigo-200 dark:border-indigo-800 cursor-pointer">
+          ✍️ <span className="hidden sm:inline">Feedback</span>
+        </button>
+      )}
+    </>
+  );
+
+  return (
+    <UserLayout navbarChildren={navbarExtras}>
       {feedbackModalOpen && (
         <FeedbackModal
           username={username}
@@ -186,22 +163,15 @@ export default function DashboardPage() {
         />
       )}
 
-      <Navbar username={username} role={role} onLogout={() => setLogoutModalOpen(true)}>
-        {!loading && totalElements > 0 && (
-          <span className="text-sm text-gray-400 dark:text-gray-500 hidden sm:block">
-            {totalElements} task{totalElements !== 1 ? "s" : ""} assigned
-          </span>
-        )}
-        {showFeedbackInNavbar && (
-          <button
-            onClick={() => setFeedbackModalOpen(true)}
-            className="flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950 hover:bg-indigo-100 dark:hover:bg-indigo-900 text-indigo-700 dark:text-indigo-400 text-sm font-medium px-3 py-2 rounded-lg transition border border-indigo-200 dark:border-indigo-800">
-            ✍️ <span className="hidden sm:inline">Feedback</span>
-          </button>
-        )}
-      </Navbar>
+      <div className="space-y-6">
 
-      <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Greeting */}
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">
+            {greeting}, {username || "there"}! 👋
+          </h1>
+          <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Here's your task overview</p>
+        </div>
 
         {/* Admin reply banner */}
         {adminReply && (
@@ -259,7 +229,7 @@ export default function DashboardPage() {
                 <button
                   key={f}
                   onClick={() => setFilter(f)}
-                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition border ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium transition border cursor-pointer ${
                     filter === f
                       ? "bg-blue-600 text-white border-blue-600"
                       : "bg-white dark:bg-gray-900 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700 hover:border-blue-400"
@@ -306,9 +276,9 @@ export default function DashboardPage() {
               <div className="h-1.5 w-full bg-gradient-to-r from-blue-500 via-indigo-400 to-purple-400" />
               <div className="px-8 py-10 text-center">
                 <div className="mx-auto mb-6 w-20 h-20 rounded-full bg-blue-50 dark:bg-blue-950 flex items-center justify-center text-4xl select-none">📋</div>
-                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Welcome aboard, {username || "there"}! 👋</h2>
+                <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 mb-2">Your workspace is ready!</h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto leading-relaxed">
-                  Your workspace is all set. Tasks assigned by the admin will appear here.
+                  Tasks assigned by the admin will appear here.
                 </p>
                 <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4 text-left">
                   {[
@@ -344,15 +314,15 @@ export default function DashboardPage() {
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {displayedTasks.map((task) => {
-                const isOverdue = task.dueDate && new Date(task.dueDate) < now && task.status !== "COMPLETED";
+                const isOverdue  = task.dueDate && new Date(task.dueDate) < now && task.status !== "COMPLETED";
                 const isDueToday = task.dueDate === now.toISOString().split("T")[0] && task.status !== "COMPLETED";
                 return (
                   <div
                     key={task.id}
                     className={`bg-white dark:bg-gray-900 rounded-2xl shadow-sm p-6 flex flex-col gap-3 border-l-4 ${
                       task.status === "COMPLETED" ? "border-green-400"
-                      : isOverdue ? "border-red-400"
-                      : isDueToday ? "border-orange-400"
+                      : isOverdue   ? "border-red-400"
+                      : isDueToday  ? "border-orange-400"
                       : task.status === "IN_PROGRESS" ? "border-blue-400"
                       : "border-yellow-400"
                     }`}>
@@ -387,7 +357,6 @@ export default function DashboardPage() {
                       </div>
                     )}
 
-                    {/* Comment history */}
                     {task.comments && task.comments.length > 0 && (
                       <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3">
                         <p className="text-xs font-medium text-blue-600 dark:text-blue-400 mb-2">💬 Comments ({task.comments.length})</p>
@@ -435,25 +404,20 @@ export default function DashboardPage() {
 
                     <div>
                       <label className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Add Comment</label>
-                      <div className="relative">
-                        <textarea
-                          rows={2}
-                          placeholder="Write a comment... (Enter to submit)"
-                          value={newComment[task.id] || ""}
-                          onChange={(e) => setNewComment((prev) => ({ ...prev, [task.id]: e.target.value }))}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter" && !e.shiftKey) {
-                              e.preventDefault();
-                              handleAddComment(task.id);
-                            }
-                          }}
-                          maxLength={500}
-                          className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1 resize-none"
-                        />
-                        <p className="text-xs text-gray-400 dark:text-gray-500 text-right mb-2">
-                          {(newComment[task.id] || "").length}/500
-                        </p>
-                      </div>
+                      <textarea
+                        rows={2}
+                        placeholder="Write a comment... (Enter to submit)"
+                        value={newComment[task.id] || ""}
+                        onChange={(e) => setNewComment((prev) => ({ ...prev, [task.id]: e.target.value }))}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleAddComment(task.id); }
+                        }}
+                        maxLength={500}
+                        className="w-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-100 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 mb-1 resize-none"
+                      />
+                      <p className="text-xs text-gray-400 dark:text-gray-500 text-right mb-2">
+                        {(newComment[task.id] || "").length}/500
+                      </p>
                       <button
                         onClick={() => handleAddComment(task.id)}
                         disabled={!newComment[task.id]?.trim()}
@@ -471,7 +435,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 0))}
                   disabled={currentPage === 0}
-                  className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300">
+                  className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300 cursor-pointer">
                   ← Prev
                 </button>
                 <span className="text-sm text-gray-500 dark:text-gray-400">
@@ -480,7 +444,7 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages - 1))}
                   disabled={currentPage >= totalPages - 1}
-                  className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300">
+                  className="px-4 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm disabled:opacity-50 hover:bg-gray-50 dark:hover:bg-gray-800 transition text-gray-700 dark:text-gray-300 cursor-pointer">
                   Next →
                 </button>
               </div>
@@ -490,6 +454,6 @@ export default function DashboardPage() {
       </div>
 
       <ContactAdminWidget username={username} />
-    </div>
+    </UserLayout>
   );
 }
