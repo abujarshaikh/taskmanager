@@ -23,7 +23,9 @@ jobs:
 
       - name: Build JAR (skip tests)
         working-directory: Backend
-        run: ./mvnw clean package -DskipTests -q
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests -q
 
       - name: Deploy to EC2
         env:
